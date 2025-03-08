@@ -1,10 +1,11 @@
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
+import { useState } from "react";
+import { useForm } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler } from "react";
+import InputLabel from "@/Components/InputLabel";
+import TextInput from "@/Components/TextInput";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import { Head, Link, router } from "@inertiajs/react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -14,22 +15,40 @@ export default function Register() {
         password_confirmation: "",
     });
 
-    const submit: FormEventHandler = (e) => {
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const submit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
 
         post(route("register"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSuccessMessage(
+                    "Registration successful! Redirecting to login..."
+                );
+                setIsModalOpen(true);
+
+                setTimeout(() => {
+                    router.visit(route("login"));
+                }, 2000);
+            },
             onFinish: () => reset("password", "password_confirmation"),
         });
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
     };
 
     return (
         <GuestLayout>
             <Head title="Register" />
 
+            {/* Registration Form */}
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
-
                     <TextInput
                         id="name"
                         name="name"
@@ -40,13 +59,11 @@ export default function Register() {
                         onChange={(e) => setData("name", e.target.value)}
                         required
                     />
-
                     <InputError message={errors.name} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
                     <InputLabel htmlFor="email" value="Email" />
-
                     <TextInput
                         id="email"
                         type="email"
@@ -57,13 +74,11 @@ export default function Register() {
                         onChange={(e) => setData("email", e.target.value)}
                         required
                     />
-
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Password" />
-
                     <TextInput
                         id="password"
                         type="password"
@@ -74,7 +89,6 @@ export default function Register() {
                         onChange={(e) => setData("password", e.target.value)}
                         required
                     />
-
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
@@ -83,7 +97,6 @@ export default function Register() {
                         htmlFor="password_confirmation"
                         value="Confirm Password"
                     />
-
                     <TextInput
                         id="password_confirmation"
                         type="password"
@@ -96,7 +109,6 @@ export default function Register() {
                         }
                         required
                     />
-
                     <InputError
                         message={errors.password_confirmation}
                         className="mt-2"
@@ -106,16 +118,26 @@ export default function Register() {
                 <div className="mt-4 flex items-center justify-end">
                     <Link
                         href={route("login")}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
+                        className="text-sm text-gray-600 underline hover:text-gray-900"
                     >
                         Already registered?
                     </Link>
-
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Register
                     </PrimaryButton>
                 </div>
             </form>
+
+            {/* Success Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+                        <h3 className="text-xl font-semibold text-center text-green-600">
+                            {successMessage}
+                        </h3>
+                    </div>
+                </div>
+            )}
         </GuestLayout>
     );
 }
