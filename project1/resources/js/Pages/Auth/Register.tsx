@@ -17,6 +17,7 @@ export default function Register() {
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState(0);
 
     const submit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
@@ -39,6 +40,28 @@ export default function Register() {
 
     const closeModal = () => {
         setIsModalOpen(false);
+    };
+
+    // Password strength evaluation function
+    const evaluatePasswordStrength = (password: string) => {
+        let strength = 0;
+
+        // Criteria: Length (>= 8)
+        if (password.length >= 8) strength++;
+        // Criteria: Contains at least one number
+        if (/[0-9]/.test(password)) strength++;
+        // Criteria: Contains at least one special character
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+        // Criteria: Contains both uppercase and lowercase
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+
+        setPasswordStrength(strength);
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const password = e.target.value;
+        setData("password", password);
+        evaluatePasswordStrength(password);
     };
 
     return (
@@ -86,10 +109,46 @@ export default function Register() {
                         value={data.password}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) => setData("password", e.target.value)}
+                        onChange={handlePasswordChange}
                         required
                     />
                     <InputError message={errors.password} className="mt-2" />
+
+                    {/* Password Strength Indicator */}
+                    <div className="mt-2">
+                        <div
+                            className={`h-2 rounded-md ${
+                                passwordStrength === 0
+                                    ? "bg-gray-300"
+                                    : passwordStrength === 1
+                                    ? "bg-red-500"
+                                    : passwordStrength === 2
+                                    ? "bg-yellow-500"
+                                    : passwordStrength === 3
+                                    ? "bg-blue-500"
+                                    : "bg-green-500"
+                            }`}
+                        ></div>
+                        {passwordStrength === 0 && (
+                            <p className="text-sm text-gray-500 mt-1">Weak</p>
+                        )}
+                        {passwordStrength === 1 && (
+                            <p className="text-sm text-red-500 mt-1">Weak</p>
+                        )}
+                        {passwordStrength === 2 && (
+                            <p className="text-sm text-yellow-500 mt-1">
+                                Moderate
+                            </p>
+                        )}
+                        {passwordStrength === 3 && (
+                            <p className="text-sm text-blue-500 mt-1">Strong</p>
+                        )}
+                        {passwordStrength === 4 && (
+                            <p className="text-sm text-green-500 mt-1">
+                                Very Strong
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="mt-4">
